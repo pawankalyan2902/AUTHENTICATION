@@ -1,14 +1,155 @@
-<%- include('includes/head.ejs', { title: 'Welcome' }) %>
+<%- include('includes/head.ejs', { title: 'Smart Vehicle Protection' }) %>
+<!-- Bootstrap 5 CSS (for carousel) -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+  /* General Styles */
+  body {
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f2f5;
+    color: #333;
+    animation: fadeIn 0.8s ease-in-out;
+  }
+
+  /* Main Content Styling */
+  main {
+    max-width: 900px;
+    margin: 60px auto;
+    padding: 30px;
+    background: #ffffff;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    text-align: center;
+  }
+
+  /* Headings */
+  h1 {
+    color: rgb(70, 0, 128);
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    animation: slideDown 1s ease;
+  }
+
+  h2 {
+    color:rgb(70, 0, 128);
+    border-left: 5px solid #007BFF;
+    padding-left: 12px;
+    font-size: 20px;
+    font-weight: 500;
+    margin-top: 25px;
+  }
+
+  /* Paragraphs */
+  p {
+    line-height: 1.8;
+    font-size: 16px;
+    color: #555;
+    animation: fadeInUp 1s ease-in-out;
+  }
+
+  /* Buttons */
+  .btn {
+    display: inline-block;
+    margin-top: 15px;
+    padding: 12px 18px;
+    background: rgb(70, 0, 128);
+    color: #fff;
+    font-size: 16px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+  }
+
+  .btn:hover {
+    background:  rgb(162, 103, 211);
+    color: rgb(70, 0, 128) ;
+    transform: scale(1.05);
+  }
+
+  /* Carousel */
+  .carousel {
+    margin-top: 20px;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+  }
+
+  .carousel-item img {
+    height: 400px;
+    object-fit: cover;
+    border-radius: 10px;
+  }
+
+  /* Animations */
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slideDown {
+    from { transform: translateY(-20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+
+<!-- Bootstrap JS (for Carousel) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 <body>
   <%- include('includes/header.ejs') %>
   <main>
-    <h1>Welcome to this demo!</h1>
-    <p>By the end of this demo <a href="/admin">/admin</a> should only be accessible if you're logged in.</p>
-    <p>The <a href="/">home page</a> should only be accessible, 
-      <a href="/signup">/signup</a> and <a href="/login">/login</a> 
-      should only be reachable (and visible in the navigation) if you're 
-      <strong>NOT</strong> logged in yet!</p>
+    <h1>Protecting Vehicles with Smart Cameras</h1>
+    <p>With advancements in technology, <strong>smart cameras</strong> are playing a crucial role in enhancing vehicle security.</p>
+
+    <div id="smartCameraCarousel" class="carousel slide" data-bs-ride="carousel">
+      <div class="carousel-inner">
+        <div class="carousel-item active">
+          <img src="../styles/image.png" class="d-block w-100" alt="Real-Time Surveillance">
+          <div class="carousel-caption d-none d-md-block">
+          
+          
+          </div>
+        </div>
+        <div class="carousel-item">
+          <img src="../styles/image2.jpg" class="d-block w-100" alt="Motion Detection">
+          <div class="carousel-caption d-none d-md-block">
+                
+          </div>
+        </div>
+        <div class="carousel-item">
+          <img src="../styles/image3.jpg" class="d-block w-100" alt="License Plate Recognition">
+          <div class="carousel-caption d-none d-md-block">
+         
+      
+          </div>
+        </div>
+      </div>
+      <button class="carousel-control-prev" type="button" data-bs-target="#smartCameraCarousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+      </button>
+      <button class="carousel-control-next" type="button" data-bs-target="#smartCameraCarousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+      </button>
+    </div>
+    
+
+    <h2>Key Features</h2>
+    <p><strong>1. Real-Time Surveillance:</strong> Monitor your vehicle anytime, anywhere.</p>
+    <p><strong>2. Motion Detection & Alerts:</strong> AI-powered alerts for any suspicious activity.</p>
+    <p><strong>3. License Plate Recognition:</strong> Detects unauthorized vehicles instantly.</p>
+    <p><strong>4. Theft Prevention:</strong> Integrates with alarms and security systems.</p>
+    <p><strong>5. Cloud Storage:</strong> Securely store recordings for future access.</p>
+
+    <a href="/admin" class="btn">Go to Admin Panel</a>
+    <a href="/" class="btn">Home Page</a>
   </main>
 </body>
 </html>

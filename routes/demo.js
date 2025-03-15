@@ -1,137 +1,116 @@
 const express = require('express');
-
-const dbs = require('../data/database');
-
-//authentication bycrpt
 const bcrypt = require("bcrypt");
-const session = require('express-session');
+const { ObjectId } = require('mongodb');
+const dbs = require('../data/database');
 
 const router = express.Router();
 
-router.get('/', function (req, res) {
-  res.render('welcome');
+// Welcome Page
+router.get('/', (req, res) => res.render("welcome"));
+
+// Signup Page
+router.get('/signup', (req, res) => {
+  let inputdata = req.session.sign_up || { email: "", confirm_email: "", password: "", hasError: "" };
+  req.session.sign_up = null;
+  res.render('signup', { inputdata });
 });
 
-router.get('/signup', function (req, res) {
-  let inputdata=req.session.sign_up;
-  if(!inputdata)
-  {
-    inputdata={
-      email:"" ,
-      confirm_email:"",
-      password:"",
-      hasError:"" 
-    }
-  }
-  req.session.sign_up=null;
-  res.render('signup',{inputdata:inputdata});
+// Login Page
+router.get('/login', (req, res) => {
+  let data = req.session.login_error || { email: "", password: "", hasError: "" };
+  req.session.login_error = null;
+  res.render('login', { data });
 });
 
-router.get('/login', function (req, res) {
-  let data=req.session.login_error;
-  if(!data)
-  {
-    data={
-    email:"",
-    password:"",
-    hasError:""
-  }
-  }
-  req.session.login_error=null;
-  res.render('login',{data:data});
-});
-
-
-router.post('/signup', async function (req, res) {
-  const password_hashed = await bcrypt.hash(req.body.password, 12);//the data is hashed by a string of 12 character 
-  const data = {
-    email: req.body.email,
-    confirm_email: req.body["confirm-email"],
-    password: password_hashed
-  };
-  const result = await dbs.getDb().collection("user_auth_data").findOne({ email: data.email });
-  console.log(result)
-  if (result ||data.email==data || data.password.trim() < 6) {
-    console.log("There is already an email registered with this id");
-    //we store dta in session
-    req.session.sign_up={
-      email: req.body.email,
-      confirm_email: req.body["confirm-email"],
-      hasError:true
-    };
-    req.session.save(function()
-    {
-      res.redirect("/signup")
-    })
-    return ;
-  }
-  await dbs.getDb().collection("user_auth_data").insertOne(data);
-  res.redirect("/login")
-});
-
-//login post data
-router.post('/login', async function (req, res) {
-  data = req.body;
-  req.session.login_error={email:data.email,password:data.password,hasError:true};
-  const result =await dbs.getDb().collection("user_auth_data").findOne({ email: data.email });
-  //If the email given is not exsisting in database,then the above result ="0"
-  if (!result) {
-    console.log("The email is invalid");
-    return res.redirect("/login");
-
-  }
-  //check with password
-  let password;
-  console.log(data.password + " and " + result.password)
+// Handle Signup
+router.post('/signup', async (req, res) => {
   try {
-    password = await bcrypt.compare(data.password, result.password);
-  } catch (error) {
-    console.log(error)
-  }
+    const { email, password } = req.body;
+    const confirm_email = req.body["confirm-email"];
+    
+    const existingUser = await dbs.getDb().collection("user_auth_data").findOne({ email });
 
-  if (!password) {
-    console.log("password is incorrect");
-    return res.redirect("/login");
-  }
-  req.session.user={email:result.email,id:result._id};//storing the data takes some time hence the save property tells the js to execute after it is saved
-  req.session.isAuthenticated=true;
-  req.session.save(function()
-    {
-      res.redirect("/admin");
+    if (existingUser || password.trim().length < 6) {
+      req.session.sign_up = { email, confirm_email, hasError: true };
+      return req.session.save(() => res.redirect("/signup"));
     }
-  );
-  
 
+    const password_hashed = await bcrypt.hash(password, 12);
+    await dbs.getDb().collection("user_auth_data").insertOne({ email, confirm_email, password: password_hashed });
+
+    res.redirect("/login");
+  } catch (error) {
+    console.error("Signup Error:", error);
+    res.status(500).send("Internal Server Error");
+  }
 });
 
-router.get('/admin', function (req, res) {
-  if(!req.session.isAuthenticated)
-  {
-   return res.render("401")
+// Handle Login
+router.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    req.session.login_error = { email, password, hasError: true };
+
+    const user = await dbs.getDb().collection("user_auth_data").findOne({ email });
+
+    if (!user) {
+      req.session.login_error.message = "Invalid email.";
+      return req.session.save(() => res.redirect("/login"));
+    }
+
+    const passwordMatch = await bcrypt.compare(password, user.password);
+    if (!passwordMatch) {
+      req.session.login_error.message = "Incorrect password.";
+      return req.session.save(() => res.redirect("/login"));
+    }
+
+    req.session.user = true;
+    req.session.isAuthenticated = true;
+
+    req.session.save((err) => {
+      if (err) {
+        return res.status(500).send("Session error, please try again.");
+      }
+      res.redirect("/admin");
+    });
+  } catch (error) {
+    console.error("Login Error:", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+// Admin Page
+router.get('/admin', (req, res) => {
+  if (!req.session.isAuthenticated) {
+    return res.render("401");
   }
   res.render('admin');
 });
 
-router.get('/profile', async function (req, res) {
-  if(!req.session.isAuthenticated)
-  {
-   return res.render("401")
+// Profile Page (Admin Only)
+router.get('/profile', async (req, res) => {
+  if (!req.session.isAuthenticated) {
+    return res.render("401");
   }
-  const id=req.session.user.id;
-  console.log(id)
-  const authorised= await dbs.getDb().collection("user_auth_data").findOne({_id:id});
-  console.log(authorised)
-  if(!authorised.isAdmin)
-  {
+
+  const id = new ObjectId(req.session.user.id);
+  const user = await dbs.getDb().collection("user_auth_data").findOne({ _id: id });
+
+  if (!user || !user.isAdmin) {
     return res.status(403).render("403");
   }
+
   res.render('profile');
 });
 
-router.post('/logout', function (req, res) {
-  req.session=null;
-  console.log(req.session)
-  res.redirect("/");
- });
+// Logout
+router.post('/logout', (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      return res.status(500).send("Error logging out.");
+    }
+    res.redirect("/");
+  });
+});
 
 module.exports = router;
